@@ -7,6 +7,7 @@ export default {
     components: { IncidentForm, DataFilter },
     data() {
         return {
+            API_BASE_URL: 'https://stpaulcrimeapi.onrender.com',
             view: 'map',
             codes: [],
             neighborhoods: {
@@ -84,11 +85,14 @@ export default {
 
         getJSON(url) {
             return new Promise((resolve, reject) => {
+                console.log(url);
+                // console.log(this.API_BASE_URL);
                 $.ajax({
                     dataType: 'json',
                     url: url,
                     success: (response) => {
                         resolve(response);
+                        console.log(url + '  success')
                     },
                     error: (status, message) => {
                         reject({status: status.status, message: status.statusText});
@@ -151,7 +155,7 @@ export default {
             }).catch((error) => {
                 console.log(error);
             });
-            this.getJSON('http://localhost:8000/incidents').then((results) => {
+            this.getJSON(`${this.API_BASE_URL}/incidents`).then((results) => {
             results.sort((inc1,inc2) => new Date(inc2.date_time) - new Date(inc1.date_time));
             const visibleNeighborhoods = Object.values(this.neighborhoods).filter((each) => this.isInBounds(each.loc[0], each.loc[1], this.leaflet.map.getBounds())).map((each) => each.name);
             this.incidents = results.filter((incident) => {
@@ -166,7 +170,7 @@ export default {
             this.renderIncidents++;
         },
         onDelete(item) {
-            this.uploadJSON('DELETE', 'http://localhost:8000/remove-incident', {'case_number': item.case_number}).then((result) => {
+            this.uploadJSON('DELETE', `${this.API_BASE_URL}/remove-incident`, {'case_number': item.case_number}).then((result) => {
                 this.incidents = this.incidents.filter((incident) => incident.case_number !== item.case_number);
             }).catch((error) => {
                 console.log(error);
@@ -257,8 +261,9 @@ export default {
             console.log('Error:', error);
         });
         
-        this.getJSON('http://localhost:8000/incidents').then((results) => {
+        this.getJSON(`${this.API_BASE_URL}/incidents`).then((results) => {
             // crime data
+            console.log(this.incidents);
             this.incidents = results;
             const crimesByNeighborhood = this.incidents.reduce((total, value) => {
                 total[this.neighborhoods[value.neighborhood_number].name] = (total[this.neighborhoods[value.neighborhood_number].name] || 0) + 1;
@@ -327,6 +332,9 @@ export default {
                         </tr>
                     </thead>
                     <tbody>
+                        <tr v-if="incidents.length === 0">
+                            <td colspan="7">Loading...</td>
+                        </tr>
                         <tr v-for="item in incidents" :class="getCrimeType(item)">
                             <td>{{ item.case_number }}</td>
                             <td>{{ item.incident}}</td>

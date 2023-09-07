@@ -5,6 +5,7 @@
         },
         data() {
             return {
+                API_BASE_URL: 'https://stpaulcrimeapi.onrender.com',
                 data: {
                     case_number: 22900010,
                     date: "",
@@ -248,7 +249,7 @@
                     this.data.time = new Date().toLocaleTimeString('en-US',{hour12:false});
                     this.data.incident = this.types[this.data.code];
                     console.log(this.data);
-                    this.sendForm("PUT", "http://localhost:8000/new-incident", this.data)
+                    this.sendForm("PUT", `${this.API_BASE_URL}/new-incident`, this.data)
                     .then((suc) => {
                         this.success = true;
                         console.log("success: " + suc);

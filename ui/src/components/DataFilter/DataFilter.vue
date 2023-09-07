@@ -75,6 +75,7 @@ export default {
     },
     data() {
         return {
+            API_BASE_URL: 'https://stpaulcrimeapi.onrender.com',
             settings: {
                 types: [],
                 neighborhoods: [],
@@ -140,7 +141,7 @@ export default {
             
         },
         generateURL() {
-            let url = "http://localhost:8000/incidents?";
+            let url = `${this.API_BASE_URL}/incidents?`;
             let firstParam = true;
             for(let i = 0; i < this.settings.types.length; i++) {
                 if(i == 0) {
