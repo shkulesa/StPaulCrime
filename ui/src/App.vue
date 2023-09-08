@@ -162,14 +162,14 @@ export default {
             //     return visibleNeighborhoods.includes(this.neighborhoods[incident.neighborhood_number].name);
             // });
             this.isLoading = true;
-            if(this.incidents) {
+            if(this.incidents.length > 0) {
                 let results = this.incidents.sort((inc1,inc2) => new Date(inc2.date_time) - new Date(inc1.date_time));
                 const visibleNeighborhoods = Object.values(this.neighborhoods).filter((each) => this.isInBounds(each.loc[0], each.loc[1], this.leaflet.map.getBounds())).map((each) => each.name);
                 this.visibleIncidents = results.filter((incident) => {
                     return visibleNeighborhoods.includes(this.neighborhoods[incident.neighborhood_number].name);
                 });
+                this.isLoading = false;
             }
-            this.isLoading = false;   
         // }).catch((error) => {
         //     console.log('Error', error);
         // });
@@ -276,6 +276,7 @@ export default {
             // console.log(this.incidents);
             this.incidents = results;
             this.visibleIncidents = [...results];
+            this.isLoading = false;
             const crimesByNeighborhood = this.incidents.reduce((total, value) => {
                 total[this.neighborhoods[value.neighborhood_number].name] = (total[this.neighborhoods[value.neighborhood_number].name] || 0) + 1;
                 return total;
