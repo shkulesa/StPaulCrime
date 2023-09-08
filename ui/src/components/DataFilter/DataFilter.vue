@@ -62,11 +62,9 @@ export default {
                     console.log("Error retrieving data" + err);
                 });
             } else {
-                console.log("no time filter");
                 this.$parent.getJSON(url)
                 .then((results) => {
                     test = results;
-                    console.log(test);
                     this.$parent.updateIncidents(test);
                 })
                 .catch((err) => {
@@ -76,7 +74,7 @@ export default {
             
         },
         generateURL() {
-            let url = `${this.API_BASE_URL}/incidents?`;
+            let url = `${API_BASE_URL}/incidents?`;
             let firstParam = true;
             for(let i = 0; i < this.settings.types.length; i++) {
                 if(i == 0) {

@@ -251,7 +251,7 @@ const API_BASE_URL = import.meta.env.VITE_APP_API_BASE_URL;
                     this.data.time = new Date().toLocaleTimeString('en-US',{hour12:false});
                     this.data.incident = this.types[this.data.code];
                     console.log(this.data);
-                    this.sendForm("PUT", `${this.API_BASE_URL}/new-incident`, this.data)
+                    this.sendForm("PUT", `${API_BASE_URL}/new-incident`, this.data)
                     .then((suc) => {
                         this.success = true;
                         console.log("success: " + suc);
