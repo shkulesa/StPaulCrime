@@ -3,11 +3,12 @@ import $ from 'jquery'
 import IncidentForm from './components/IncidentForm.vue'
 import DataFilter from './components/DataFilter/DataFilter.vue'
 
+const API_BASE_URL = import.meta.env.VITE_APP_API_BASE_URL;
+
 export default {
     components: { IncidentForm, DataFilter },
     data() {
         return {
-            API_BASE_URL: 'https://stpaulcrimeapi.onrender.com',
             view: 'map',
             codes: [],
             neighborhoods: {
@@ -29,8 +30,10 @@ export default {
                 16: {name: 'Summit Hill', loc:[44.937705, -93.136997]},
                 17: {name: 'Capitol River', loc:[44.949203, -93.093739]}
             },
+            isLoading: true,
             renderIncidents: 0,
             incidents: [],
+            visibleIncidents: [],
             leaflet: {
                 map: null,
                 center: {
@@ -85,14 +88,11 @@ export default {
 
         getJSON(url) {
             return new Promise((resolve, reject) => {
-                console.log(url);
-                // console.log(this.API_BASE_URL);
                 $.ajax({
                     dataType: 'json',
                     url: url,
                     success: (response) => {
                         resolve(response);
-                        console.log(url + '  success')
                     },
                     error: (status, message) => {
                         reject({status: status.status, message: status.statusText});
@@ -155,23 +155,33 @@ export default {
             }).catch((error) => {
                 console.log(error);
             });
-            this.getJSON(`${this.API_BASE_URL}/incidents`).then((results) => {
-            results.sort((inc1,inc2) => new Date(inc2.date_time) - new Date(inc1.date_time));
-            const visibleNeighborhoods = Object.values(this.neighborhoods).filter((each) => this.isInBounds(each.loc[0], each.loc[1], this.leaflet.map.getBounds())).map((each) => each.name);
-            this.incidents = results.filter((incident) => {
-                return visibleNeighborhoods.includes(this.neighborhoods[incident.neighborhood_number].name);
-            });
-        }).catch((error) => {
-            console.log('Error', error);
-        });
+            // this.getJSON(`${this.API_BASE_URL}/incidents`).then((results) => {
+            // results.sort((inc1,inc2) => new Date(inc2.date_time) - new Date(inc1.date_time));
+            // const visibleNeighborhoods = Object.values(this.neighborhoods).filter((each) => this.isInBounds(each.loc[0], each.loc[1], this.leaflet.map.getBounds())).map((each) => each.name);
+            // this.incidents = results.filter((incident) => {
+            //     return visibleNeighborhoods.includes(this.neighborhoods[incident.neighborhood_number].name);
+            // });
+            this.isLoading = true;
+            if(this.incidents) {
+                let results = this.incidents.sort((inc1,inc2) => new Date(inc2.date_time) - new Date(inc1.date_time));
+                const visibleNeighborhoods = Object.values(this.neighborhoods).filter((each) => this.isInBounds(each.loc[0], each.loc[1], this.leaflet.map.getBounds())).map((each) => each.name);
+                this.visibleIncidents = results.filter((incident) => {
+                    return visibleNeighborhoods.includes(this.neighborhoods[incident.neighborhood_number].name);
+                });
+            }
+            this.isLoading = false;   
+        // }).catch((error) => {
+        //     console.log('Error', error);
+        // });
         },
         updateIncidents(results) {
-            this.incidents = results;
+            this.visibleIncidents = results;
             this.renderIncidents++;
+            this.isLoading = false;
         },
         onDelete(item) {
-            this.uploadJSON('DELETE', `${this.API_BASE_URL}/remove-incident`, {'case_number': item.case_number}).then((result) => {
-                this.incidents = this.incidents.filter((incident) => incident.case_number !== item.case_number);
+            this.uploadJSON('DELETE', `${API_BASE_URL}/remove-incident`, {'case_number': item.case_number}).then((result) => {
+                this.visibleIncidents = this.visibleIncidents.filter((incident) => incident.case_number !== item.case_number);
             }).catch((error) => {
                 console.log(error);
             })
@@ -261,10 +271,11 @@ export default {
             console.log('Error:', error);
         });
         
-        this.getJSON(`${this.API_BASE_URL}/incidents`).then((results) => {
+        this.getJSON(`${API_BASE_URL}/incidents`).then((results) => {
             // crime data
-            console.log(this.incidents);
+            // console.log(this.incidents);
             this.incidents = results;
+            this.visibleIncidents = [...results];
             const crimesByNeighborhood = this.incidents.reduce((total, value) => {
                 total[this.neighborhoods[value.neighborhood_number].name] = (total[this.neighborhoods[value.neighborhood_number].name] || 0) + 1;
                 return total;
@@ -332,10 +343,10 @@ export default {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-if="incidents.length === 0">
+                        <tr v-if="isLoading">
                             <td colspan="7">Loading...</td>
                         </tr>
-                        <tr v-for="item in incidents" :class="getCrimeType(item)">
+                        <tr v-for="item in visibleIncidents" :class="getCrimeType(item)">
                             <td>{{ item.case_number }}</td>
                             <td>{{ item.incident}}</td>
                             <td>{{ neighborhoods[item.neighborhood_number].name }}</td>

@@ -1,72 +1,7 @@
-<template>
-    <div class="filter">
-    <div class="cell auto">
-      <button class="button" type="button" data-toggle="data-filter">Filter</button>
-      <img class="legend" src="./assets/legend.png" alt="table legend" />
-    </div>
-      <div class="dropdown-pane form cell-auto" id="data-filter" data-dropdown data-auto-focus="true">
-        <div class="grid-x" >
-            <div class="small-10">
-                <h4>Filter results</h4>
-            </div>
-            <div class="small-2">
-                <button class="close-button" aria-label="Dismiss alert" type="button" data-toggle="data-filter">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-        </div>
-        <form>
-            <div class="grid-container">
-                <div class="grid-x grid-padding-x">
-                    <div class="cell small-6">
-                        <h6>Neighborhood:</h6>
-                        <template v-for="(value, key) in neighborhoods">
-                            <input type="checkbox" :id=value :value=key v-model="settings.neighborhoods">
-                            <label :for=value>{{value}}</label>
-                            <br/>
-                        </template>
-                    </div>
-                    <div class="cell small-6">
-                        <h6>Incident Type:</h6>
-                        <template v-for="(value, key) in type_groups">
-                            <input type="checkbox" :id=key :value=key v-model="settings.types">
-                            <label :for=key>{{key}}</label>
-                            <br/>
-                        </template>
-                    </div>
-                </div>
-            </div>
-            <h6>Timespan:</h6>
-                <div class="grid-x">
-                    <div class="small-3 margin-r">
-                        Start: <input type="date" @change="showStartTime" v-model="settings.start_date">
-                    </div>
-                    <div class="small-3 margin-r">
-                        End: <input type="date" @change="showEndTime" v-model="settings.end_date">
-                    </div>
-                </div>
-                <div class="grid-x">
-                    <div v-if="show_start_time" class="small-3 margin-r">
-                        <input type="time" v-model="settings.start_time">
-                    </div>
-                    <div v-if="show_end_time" class="small-3 margin-r">
-                        <input type="time" v-model="settings.end_time">
-                    </div>
-                </div>
-             <h6>Max Incidents:</h6>
-             <div class="grid-x">
-                <div class="small-2">
-                    <input required type="number" min="1" v-model="settings.limit">  
-                </div>
-            </div>
-            <button type="button" class="button margin-r" @click="applyFilters">Apply Filters</button>
-            <button type="button" class="button" @click="resetFilters">Reset Filters</button>
-        </form>
-      </div>
-    </div>
-</template>
-
 <script>
+const API_BASE_URL = import.meta.env.VITE_APP_API_BASE_URL;
+
+
 export default {
     mounted() {
         this.data_filter = new Foundation.Dropdown($('#data-filter'), {
@@ -75,7 +10,6 @@ export default {
     },
     data() {
         return {
-            API_BASE_URL: 'https://stpaulcrimeapi.onrender.com',
             settings: {
                 types: [],
                 neighborhoods: [],
@@ -111,6 +45,7 @@ export default {
             this.show_end_time = true;
         },
         applyFilters() {
+            this.$parent.isLoading = true;
             if(this.settings.start_time.length < 6) this.settings.start_time += ":00";
             let time = true;
             if(this.settings.start_time == "00:00:00" && this.settings.end_time == "23:59:59")time = false;
@@ -216,6 +151,74 @@ export default {
     }
 }
 </script>
+
+<template>
+    <div class="filter">
+    <div class="cell auto">
+      <button class="button" type="button" data-toggle="data-filter">Filter</button>
+      <img class="legend" src="./assets/legend.png" alt="table legend" />
+    </div>
+      <div class="dropdown-pane form cell-auto" id="data-filter" data-dropdown data-auto-focus="true">
+        <div class="grid-x" >
+            <div class="small-10">
+                <h4>Filter results</h4>
+            </div>
+            <div class="small-2">
+                <button class="close-button" aria-label="Dismiss alert" type="button" data-toggle="data-filter">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
+        <form>
+            <div class="grid-container">
+                <div class="grid-x grid-padding-x">
+                    <div class="cell small-6">
+                        <h6>Neighborhood:</h6>
+                        <template v-for="(value, key) in neighborhoods">
+                            <input type="checkbox" :id=value :value=key v-model="settings.neighborhoods">
+                            <label :for=value>{{value}}</label>
+                            <br/>
+                        </template>
+                    </div>
+                    <div class="cell small-6">
+                        <h6>Incident Type:</h6>
+                        <template v-for="(value, key) in type_groups">
+                            <input type="checkbox" :id=key :value=key v-model="settings.types">
+                            <label :for=key>{{key}}</label>
+                            <br/>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            <h6>Timespan:</h6>
+                <div class="grid-x">
+                    <div class="small-3 margin-r">
+                        Start: <input type="date" @change="showStartTime" v-model="settings.start_date">
+                    </div>
+                    <div class="small-3 margin-r">
+                        End: <input type="date" @change="showEndTime" v-model="settings.end_date">
+                    </div>
+                </div>
+                <div class="grid-x">
+                    <div v-if="show_start_time" class="small-3 margin-r">
+                        <input type="time" v-model="settings.start_time">
+                    </div>
+                    <div v-if="show_end_time" class="small-3 margin-r">
+                        <input type="time" v-model="settings.end_time">
+                    </div>
+                </div>
+             <h6>Max Incidents:</h6>
+             <div class="grid-x">
+                <div class="small-2">
+                    <input required type="number" min="1" v-model="settings.limit">  
+                </div>
+            </div>
+            <button type="button" class="button margin-r" @click="applyFilters">Apply Filters</button>
+            <button type="button" class="button" @click="resetFilters">Reset Filters</button>
+        </form>
+      </div>
+    </div>
+</template>
 
 <style >
     .filter {
